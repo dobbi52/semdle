@@ -557,7 +557,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   function enterChallenge(L){
     if (isChal()) saveChal();
     if (L && L !== chalLen){
-      chalLen = L; serverTotal = null; serverWins = null; lastBoard = null;
+      chalLen = L; serverTotal = null; serverWins = null; serverPeak = null; lastBoard = null;
       rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
     }
     store.set('semdle-chal-len', chalLen);
@@ -788,7 +788,11 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   const curFX = () => trackLen() === 8 ? FX8 : FX6;
   let justFinished = false;
   const skinKey = k => `semdle-${k}:${me || '_'}:${trackLen()}`;
-  const bestScore = () => Math.max(store.get(skinKey('best'), 0), isChal() ? shownTotal() : 0);
+  let serverPeak = null; // 서버 기록으로 계산한 이 칸 수 챌린지의 최고 누적 점수
+  const bestScore = () => {
+    if (isChal() && serverPeak !== null) return Math.max(serverPeak, shownTotal());
+    return Math.max(store.get(skinKey('best'), 0), isChal() ? shownTotal() : 0);
+  };
   function applySkin(id){
     if (id) document.documentElement.setAttribute('data-skin', id); else document.documentElement.removeAttribute('data-skin');
     document.documentElement.setAttribute('data-safe', store.get('semdle-safe', false) ? '1' : '0');
@@ -802,7 +806,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       const sk = SKINS[opened - 1]; store.set(skinKey('skin'), sk.id); applySkin(sk.id);
       setTimeout(() => { toast(`새 판이 열렸어요! '${sk.name}' 판으로 바뀌었어요`, 2400); playFx('confetti', 1.2, true); }, 400);
     } else {
-      if (store.get(skinKey('skin'), null) === null || (prev !== null && opened > prev)) store.set(skinKey('skin'), SKINS[Math.max(0, opened - 1)].id);
+      const curSk = SKINS.find(x => x.id === store.get(skinKey('skin'), null));
+      if (!curSk || curSk.need > best || (prev !== null && opened > prev)) store.set(skinKey('skin'), SKINS[Math.max(0, opened - 1)].id);
       applySkin(store.get(skinKey('skin'), ''));
     }
     const fo = curFX().filter(x => best >= x.need).length, fp = store.get(skinKey('fxOpened'), null);
@@ -810,7 +815,10 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (fp !== null && fo > fp && justFinished){
       const f = curFX()[fo - 1]; store.set(skinKey('fx'), f.id);
       setTimeout(() => toast(`새 효과가 열렸어요! 이제 맞히면 '${f.name}' ${f.icon}`, 2400), opened > prev ? 2600 : 400);
-    } else if (store.get(skinKey('fx'), null) === null || (fp !== null && fo > fp)) store.set(skinKey('fx'), curFX()[Math.max(0, fo - 1)].id);
+    } else {
+      const curF = curFX().find(x => x.id === store.get(skinKey('fx'), null));
+      if (!curF || curF.need > best || (fp !== null && fo > fp)) store.set(skinKey('fx'), curFX()[Math.max(0, fo - 1)].id);
+    }
   }
   function nextRewardText(){
     const best = bestScore();
@@ -989,6 +997,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (j && typeof j.players === 'number'){ crowdBy[chalLen] = { today: j.todayPlayers || 0, total: j.players, games: j.totalGames }; renderCrowd(); }
     if (j && j.me && j.me.name === me){
       serverTotal = j.me.total; serverWins = j.me.wins || 0;
+      if (typeof j.me.peak === 'number') serverPeak = j.me.peak;
       if (isChal() && !over && !guesses.length && !current && levelOf(curWins()) !== LV){
         LV = levelOf(curWins()); maxRows = triesOf(LV); saveChal(); buildBoard(); render();
       }
@@ -1063,7 +1072,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       const j = await api({ action: 'join', name: n, pin: p, len: chalLen });
       me = n; rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
       me = n; pin = p; store.set('semdle-chal-name', me); store.set('semdle-chal-pin', pin);
-      serverTotal = null; serverWins = null; lastBoard = j; applyMe(j);
+      serverTotal = null; serverWins = null; serverPeak = null; lastBoard = j; applyMe(j);
       closeModals(); updateHeader();
       toast(j.created ? `${me}님, 새로 참가했어요!` : `${me}님, 다시 왔군요!`);
     }catch(e){ $('nickMsg').textContent = e.message === 'Failed to fetch' ? '연결하지 못했어요. 인터넷을 확인해 주세요.' : e.message; }
