@@ -124,7 +124,9 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 }
 .actions button.alt{background:var(--key);color:var(--key-ink)}
 
-.seg button[data-chal]{border-left:2px solid var(--ink)}
+.seg button[data-chal="6"]{border-left:2px solid var(--ink)}
+.seg button{padding:6px 9px}
+@media (max-width:380px){.seg button{padding:6px 6px;font-size:.85rem}}
 .seg button[data-chal][aria-pressed="true"]{background:var(--green);color:#fff}
 .chalbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;font-size:.95rem}
 .chalbar b{font-family:"Jua",sans-serif;font-weight:400;font-size:1.2rem;color:var(--green)}
@@ -168,7 +170,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <div class="seg" role="group" aria-label="칸 수">
       <button data-len="6" aria-pressed="false">6칸 쉬움</button>
       <button data-len="8" aria-pressed="true">8칸 보통</button>
-      <button data-chal aria-pressed="false">8칸 챌린지</button>
+      <button data-chal="6" aria-pressed="false">6칸 챌린지</button>
+      <button data-chal="8" aria-pressed="false">8칸 챌린지</button>
     </div>
     <div class="stepper" role="group" aria-label="기회 수">
       <button id="triesDown" aria-label="기회 줄이기">−</button>
@@ -209,8 +212,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
       <li><b style="color:var(--gray)">회색</b>: 식에 없는 기호</li>
     </ul>
     <p>한 문제를 끝내면 새 문제가 계속 나와요. ↻ 버튼을 누르면 언제든 새 문제로 바꿀 수 있어요.</p>
-    <h2 style="margin-top:14px">8칸 챌린지</h2>
-    <p>닉네임으로 참가해 점수를 모으고 순위에 도전해요. 한 문제를 끝내야 다음 문제로 넘어가요.</p>
+    <h2 style="margin-top:14px">6칸·8칸 챌린지</h2>
+    <p>닉네임으로 참가해 점수를 모으고 순위에 도전해요. 한 문제를 끝내야 다음 문제로 넘어가요. 6칸과 8칸은 점수·단계·순위가 따로예요. 닉네임은 같이 써요.</p>
     <table class="rule">
       <tr><td>1번 만에 맞히면</td><td>100점</td></tr>
       <tr><td>한 번 늦을 때마다</td><td>−10점</td></tr>
@@ -389,6 +392,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   let len = store.get('semdle-len', 8);
   let maxRows = store.get('semdle-tries', 6);
   let mode = store.get('semdle-mode', 'practice');
+  let chalLen = store.get('semdle-chal-len', 8);
 
   // ---------- 챌린지 상태 ----------
   const levelOf = w => Math.min(5, Math.floor(w / 5) + 1);
@@ -399,14 +403,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   let me = store.get('semdle-chal-name', ''), pin = store.get('semdle-chal-pin', '');
   let serverTotal = null, serverWins = null, pending = store.get('semdle-chal-pending', null);
   const EMPTY = { total: 0, games: 0, wins: 0, streak: 0, best: 0 };
-  const recKey = () => 'semdle-chal-rec:' + (me || '_');
+  const recKey = () => 'semdle-chal-rec:' + (me || '_') + (chalLen === 8 ? '' : ':' + chalLen);
   let rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
   const saveRec = () => store.set(recKey(), rec);
   const curWins = () => serverWins !== null ? serverWins : rec.wins;
   const shownTotal = () => serverTotal !== null ? serverTotal : rec.total;
   const pointsFor = t => 100 - (t - 1) * 10 + bonusOf(LV);
   const isChal = () => mode === 'challenge';
-  function saveChal(){ if (isChal()) store.set('semdle-chal-game', { answer, guesses, over, lv: LV }); }
+  function saveChal(){ if (isChal() && answer) store.set('semdle-chal-game' + (chalLen === 8 ? '' : '-' + chalLen), { answer, guesses, over, lv: LV }); }
   let answer, guesses, current, over, locked = false;
   const rank = { gray: 1, amber: 2, green: 3 };
 
@@ -422,7 +426,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     document.querySelector('.stepper').hidden = chal;
     $('newBtn').hidden = chal;
     document.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', !chal && +x.dataset.len === len));
-    document.querySelector('[data-chal]').setAttribute('aria-pressed', chal);
+    document.querySelectorAll('[data-chal]').forEach(x => x.setAttribute('aria-pressed', chal && +x.dataset.chal === chalLen));
     if (chal){
       $('countNo').textContent = '';
       $('nickBtn').textContent = me || '닉네임 쓰기';
@@ -443,17 +447,23 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   function newGame(){
     closeModals();
     current = ''; over = false; guesses = [];
-    if (isChal()){ len = 8; LV = levelOf(curWins()); maxRows = triesOf(LV); }
+    if (isChal()){ len = chalLen; LV = levelOf(curWins()); maxRows = triesOf(LV); }
     answer = makePuzzle(len, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
     saveChal();
     updateHeader(); buildBoard(); buildKeyboard(); render();
   }
-  function enterChallenge(){
+  function enterChallenge(L){
+    if (isChal()) saveChal();
+    if (L && L !== chalLen){
+      chalLen = L; serverTotal = null; serverWins = null; lastBoard = null;
+      rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
+    }
+    store.set('semdle-chal-len', chalLen);
     mode = 'challenge'; store.set('semdle-mode', mode);
     closeModals();
-    const g = store.get('semdle-chal-game', null);
-    if (g && g.answer && !g.over && g.answer.length === 8){
-      len = 8; LV = g.lv || levelOf(curWins()); maxRows = triesOf(LV);
+    const g = store.get('semdle-chal-game' + (chalLen === 8 ? '' : '-' + chalLen), null);
+    if (g && g.answer && !g.over && g.answer.length === chalLen){
+      len = chalLen; LV = g.lv || levelOf(curWins()); maxRows = triesOf(LV);
       answer = g.answer; guesses = g.guesses || []; over = false; current = '';
       updateHeader(); buildBoard(); buildKeyboard(); render();
     } else newGame();
@@ -661,14 +671,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     lastResult = { won, applied, msg };
     updateHeader();
     if (SCRIPT_URL && me){
-      pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, delta, win: won ? 1 : 0, tries, lv: LV, word: answer };
+      pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, delta, win: won ? 1 : 0, tries, lv: LV, len: chalLen, word: answer };
       store.set('semdle-chal-pending', pending);
     }
     setTimeout(() => { openChalStats(true); sendPending(); }, 1200);
   }
   function openChalStats(showResult){
     const r = showResult ? lastResult : null;
-    $('statsTitle').textContent = '챌린지 기록';
+    $('statsTitle').textContent = `${chalLen}칸 챌린지 기록`;
     $('resultArea').innerHTML = (over ? `<p style="margin:0;text-align:center;color:var(--ink-soft)">${r && r.won ? '정답!' : '정답은'}</p><div class="answer">${[...answer].map(show).join('')}</div>` : '')
       + (r ? `<div class="gain ${r.applied > 0 ? 'plus' : 'minus'}">${r.applied > 0 ? '+' + r.applied : r.applied}점</div><p class="note" style="text-align:center">${r.msg}</p>` : '')
       + `<p class="note" style="text-align:center" id="syncMsg"></p>`;
@@ -736,13 +746,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (!SCRIPT_URL) return;
     if (showUI) $('rankMsg').textContent = '불러오는 중…';
     try{
-      const j = await api(me ? { action: 'board', name: me } : { action: 'board' });
+      const j = await api(me ? { action: 'board', name: me, len: chalLen } : { action: 'board', len: chalLen });
       lastBoard = j; applyMe(j);
       if (showUI) drawBoard();
     }catch(e){ if (showUI) $('rankMsg').textContent = '순위를 불러오지 못했어요.'; }
   }
   function showRank(){
     closeModals();
+    $('rankTitle').textContent = `${chalLen}칸 챌린지 순위 (20위까지)`;
     $('rankBody').innerHTML = ''; $('rankMe').textContent = '';
     $('rankModal').classList.add('open');
     if (!SCRIPT_URL){ $('rankMsg').textContent = '순위표가 아직 연결되지 않았어요.'; return; }
@@ -761,8 +772,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (!/^\d{4}$/.test(p)){ $('nickMsg').textContent = '비밀번호는 숫자 4자리로 써 주세요.'; return; }
     $('nickMsg').textContent = '확인하는 중…'; $('nickOk').disabled = true;
     try{
-      const j = await api({ action: 'join', name: n, pin: p });
-      if (n !== me) rec = Object.assign({}, EMPTY, store.get('semdle-chal-rec:' + n, {}));
+      const j = await api({ action: 'join', name: n, pin: p, len: chalLen });
+      me = n; rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
       me = n; pin = p; store.set('semdle-chal-name', me); store.set('semdle-chal-pin', pin);
       serverTotal = null; serverWins = null; lastBoard = j; applyMe(j);
       closeModals(); updateHeader();
@@ -789,7 +800,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       else { len = +b.dataset.len; newGame(); }
     });
   });
-  document.querySelector('[data-chal]').addEventListener('click', e => { e.currentTarget.blur(); if (!isChal()) enterChallenge(); });
+  document.querySelectorAll('[data-chal]').forEach(b => b.addEventListener('click', e => { const L = +b.dataset.chal; b.blur(); if (!(isChal() && L === chalLen)) enterChallenge(L); }));
   function setTries(n){
     if (isChal()) return;
     const inGame = guesses.length > 0 && !over;
