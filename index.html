@@ -123,6 +123,34 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   background:var(--green);color:#fff
 }
 .actions button.alt{background:var(--key);color:var(--key-ink)}
+
+.seg button[data-chal]{border-left:2px solid var(--ink)}
+.seg button[data-chal][aria-pressed="true"]{background:var(--green);color:#fff}
+.chalbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;font-size:.95rem}
+.chalbar b{font-family:"Jua",sans-serif;font-weight:400;font-size:1.2rem;color:var(--green)}
+.pill{border:2px solid var(--ink);border-radius:999px;background:var(--tile-bg);color:var(--ink);font-family:"Jua",sans-serif;font-size:.9rem;padding:4px 12px;cursor:pointer}
+.pill.main{background:var(--green);border-color:var(--green);color:#fff}
+[hidden]{display:none!important}
+.lb{width:100%;border-collapse:collapse;font-size:.95rem}
+.lb th,.lb td{padding:7px 5px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
+.lb th:nth-child(2),.lb td:nth-child(2){text-align:left;white-space:normal}
+.lb th{font-size:.8rem;color:var(--ink-soft)}
+.lb td:first-child{font-family:"Jua",sans-serif;text-align:center;width:2.2em}
+.lb tr.me td{background:rgba(46,158,106,.15);font-weight:700}
+.lb .pts{font-family:"Jua",sans-serif;color:var(--green)}
+.rtabs{display:flex;gap:6px;margin:4px 0 8px}
+.rtabs button{flex:1;font-family:"Jua",sans-serif;font-size:.95rem;padding:8px;border:2px solid var(--ink);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+.rtabs button.on{background:var(--green);border-color:var(--green);color:#fff}
+.note{font-size:.85rem;color:var(--ink-soft);line-height:1.5;margin:4px 0}
+.modal label{display:block;font-family:"Jua",sans-serif;margin:10px 0 4px}
+.modal input{width:100%;font-family:inherit;font-size:1.1rem;padding:8px 10px;border:2px solid var(--tile-line);border-radius:8px;background:var(--paper);color:var(--ink)}
+.gain{font-family:"Jua",sans-serif;font-size:2rem;text-align:center;margin:0 0 4px}
+.gain.plus{color:var(--green)} .gain.minus{color:#C0503A}
+.rule{width:100%;border-collapse:collapse;font-size:.9rem;margin:4px 0 8px}
+.rule td{padding:3px 4px;border-bottom:1px solid var(--grid)}
+.rule td:last-child{text-align:right}
+.board-wrap.scroll{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 0}
+.board-wrap.scroll .row{scroll-margin:6px}
 </style>
 </head>
 <body>
@@ -140,12 +168,17 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <div class="seg" role="group" aria-label="칸 수">
       <button data-len="6" aria-pressed="false">6칸 쉬움</button>
       <button data-len="8" aria-pressed="true">8칸 보통</button>
+      <button data-chal aria-pressed="false">8칸 챌린지</button>
     </div>
     <div class="stepper" role="group" aria-label="기회 수">
       <button id="triesDown" aria-label="기회 줄이기">−</button>
       <span id="triesLabel">기회 6번</span>
       <button id="triesUp" aria-label="기회 늘리기">+</button>
     </div>
+  </div>
+  <div class="chalbar" id="chalBar" hidden>
+    <span><button class="pill" id="nickBtn">닉네임 쓰기</button> 누적 <b id="chalTotal">0</b>점</span>
+    <button class="pill main" id="rankBtn">순위</button>
   </div>
   <p class="subtitle" id="subtitle"></p>
 
@@ -176,6 +209,47 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
       <li><b style="color:var(--gray)">회색</b>: 식에 없는 기호</li>
     </ul>
     <p>한 문제를 끝내면 새 문제가 계속 나와요. ↻ 버튼을 누르면 언제든 새 문제로 바꿀 수 있어요.</p>
+    <h2 style="margin-top:14px">8칸 챌린지</h2>
+    <p>닉네임으로 참가해 점수를 모으고 순위에 도전해요. 한 문제를 끝내야 다음 문제로 넘어가요.</p>
+    <table class="rule">
+      <tr><td>1번 만에 맞히면</td><td>100점</td></tr>
+      <tr><td>한 번 늦을 때마다</td><td>−10점</td></tr>
+      <tr><td>못 맞히면</td><td>단계 × 10점 감점</td></tr>
+    </table>
+    <p>5문제 맞힐 때마다 단계가 올라가요. 기회는 줄고 감점은 커지지만, 맞히면 보너스를 받아요. 점수는 0점 아래로 내려가지 않아요.</p>
+    <table class="rule">
+      <tr><td>1단계 (0~4개 맞힘)</td><td>10번 · 감점 −10</td></tr>
+      <tr><td>2단계 (5~9개)</td><td>9번 · +5 · −20</td></tr>
+      <tr><td>3단계 (10~14개)</td><td>8번 · +10 · −30</td></tr>
+      <tr><td>4단계 (15~19개)</td><td>7번 · +15 · −40</td></tr>
+      <tr><td>5단계 (20개 이상)</td><td>6번 · +20 · −50</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="modal-bg" id="nickModal">
+  <div class="modal" role="dialog" aria-labelledby="nickTitle">
+    <h2 id="nickTitle">닉네임으로 들어가기</h2>
+    <p class="note">처음이면 새로 만들어지고, 전에 쓴 닉네임이면 점수가 이어져요. 진짜 이름 대신 닉네임을 써 주세요.</p>
+    <label for="nickInput">닉네임 (한글·영어·숫자 2~10자)</label>
+    <input type="text" id="nickInput" maxlength="10" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="pinInput">비밀번호 (숫자 4자리)</label>
+    <input type="password" id="pinInput" inputmode="numeric" maxlength="4" autocomplete="off">
+    <p class="note">다른 기기에서도 같은 닉네임과 비밀번호를 쓰면 이어서 할 수 있어요. 비밀번호를 잊으면 찾을 수 없으니 꼭 기억해 두세요.</p>
+    <p class="note" id="nickMsg" style="color:#C0503A;min-height:1.4em"></p>
+    <div class="actions"><button class="alt" id="nickCancel">연습으로 돌아가기</button><button id="nickOk">들어가기</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="rankModal">
+  <div class="modal" role="dialog" aria-labelledby="rankTitle">
+    <button class="close" data-close aria-label="닫기">×</button>
+    <h2 id="rankTitle">순위 (20위까지)</h2>
+    <div class="rtabs"><button id="tabWeek" class="on">이번 주</button><button id="tabAll">전체 누적</button></div>
+    <p class="note" id="rankMsg"></p>
+    <table class="lb"><thead><tr><th>순위</th><th>닉네임</th><th>점수</th><th>맞힘</th><th>문제</th></tr></thead><tbody id="rankBody"></tbody></table>
+    <p class="note" id="rankMe"></p>
+    <div class="actions" style="margin-top:10px"><button class="alt" id="rankRefresh">새로고침</button><button data-close>닫기</button></div>
   </div>
 </div>
 
@@ -190,6 +264,9 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 </div>
 
 <script>
+/* ▼ 선생님: 셈들 챌린지용 구글 Apps Script 웹 앱 주소를 따옴표 안에 붙여 넣으세요 ▼ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbmJrRARFIQdu7kaJKFZ4Fl6Yu-i3DUG9hrAn5NBCT4bvQwybhXQ/exec";
+/* ▲ ─────────────────────────────────────────────────────────── ▲ */
 (() => {
   const OPS = ['+','-','×','÷'];
   const KEYS_NUM = ['1','2','3','4','5','6','7','8','9','0'];
@@ -311,6 +388,25 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   // ---------- 상태 ----------
   let len = store.get('semdle-len', 8);
   let maxRows = store.get('semdle-tries', 6);
+  let mode = store.get('semdle-mode', 'practice');
+
+  // ---------- 챌린지 상태 ----------
+  const levelOf = w => Math.min(5, Math.floor(w / 5) + 1);
+  const triesOf = l => 11 - l;
+  const bonusOf = l => (l - 1) * 5;
+  const failOf = l => -10 * l;
+  let LV = 1;
+  let me = store.get('semdle-chal-name', ''), pin = store.get('semdle-chal-pin', '');
+  let serverTotal = null, serverWins = null, pending = store.get('semdle-chal-pending', null);
+  const EMPTY = { total: 0, games: 0, wins: 0, streak: 0, best: 0 };
+  const recKey = () => 'semdle-chal-rec:' + (me || '_');
+  let rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
+  const saveRec = () => store.set(recKey(), rec);
+  const curWins = () => serverWins !== null ? serverWins : rec.wins;
+  const shownTotal = () => serverTotal !== null ? serverTotal : rec.total;
+  const pointsFor = t => 100 - (t - 1) * 10 + bonusOf(LV);
+  const isChal = () => mode === 'challenge';
+  function saveChal(){ if (isChal()) store.set('semdle-chal-game', { answer, guesses, over, lv: LV }); }
   let answer, guesses, current, over, locked = false;
   const rank = { gray: 1, amber: 2, green: 3 };
 
@@ -321,6 +417,21 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   function loadStats(){ return store.get(statsKey(), { played: 0, wins: 0, streak: 0, max: 0 }); }
 
   function updateHeader(){
+    const chal = isChal();
+    $('chalBar').hidden = !chal;
+    document.querySelector('.stepper').hidden = chal;
+    $('newBtn').hidden = chal;
+    document.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', !chal && +x.dataset.len === len));
+    document.querySelector('[data-chal]').setAttribute('aria-pressed', chal);
+    if (chal){
+      $('countNo').textContent = '';
+      $('nickBtn').textContent = me || '닉네임 쓰기';
+      $('chalTotal').textContent = shownTotal();
+      $('subtitle').textContent = over
+        ? '문제 끝 · 입력을 누르면 다음 문제'
+        : `${LV}단계 · 기회 ${maxRows - guesses.length}번 · 맞히면 ${pointsFor(guesses.length + 1)}점 · 못 맞히면 ${failOf(LV)}점`;
+      return;
+    }
     const s = loadStats();
     $('countNo').textContent = s.played ? `${s.wins}/${s.played}` : '';
     $('triesLabel').textContent = `기회 ${maxRows}번`;
@@ -332,20 +443,43 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   function newGame(){
     closeModals();
     current = ''; over = false; guesses = [];
+    if (isChal()){ len = 8; LV = levelOf(curWins()); maxRows = triesOf(LV); }
     answer = makePuzzle(len, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
+    saveChal();
     updateHeader(); buildBoard(); buildKeyboard(); render();
+  }
+  function enterChallenge(){
+    mode = 'challenge'; store.set('semdle-mode', mode);
+    closeModals();
+    const g = store.get('semdle-chal-game', null);
+    if (g && g.answer && !g.over && g.answer.length === 8){
+      len = 8; LV = g.lv || levelOf(curWins()); maxRows = triesOf(LV);
+      answer = g.answer; guesses = g.guesses || []; over = false; current = '';
+      updateHeader(); buildBoard(); buildKeyboard(); render();
+    } else newGame();
+    if (SCRIPT_URL && !me) askNick();
+    else if (SCRIPT_URL) loadBoard(false);
+  }
+  function leaveChallenge(newLen){
+    saveChal();
+    mode = 'practice'; store.set('semdle-mode', mode);
+    len = newLen || store.get('semdle-len', 8);
+    maxRows = store.get('semdle-tries', 6);
+    newGame();
   }
 
   function tileSize(){
     const w = Math.min(window.innerWidth, 520) - 24;
-    const h = window.innerHeight - 330;
+    const h = window.innerHeight - (isChal() ? 370 : 330);
     const rows = maxRows;
     const byW = (w - (len - 1) * 6) / len;
     const byH = (h - (rows - 1) * 6) / rows;
+    if (isChal()) return Math.max(30, Math.min(52, byW));
     return Math.max(24, Math.min(60, byW, byH));
   }
 
   function buildBoard(){
+    document.querySelector('.board-wrap').classList.toggle('scroll', isChal());
     boardEl.style.setProperty('--ts', tileSize() + 'px');
     boardEl.innerHTML = '';
     for (let r = 0; r < maxRows; r++){
@@ -392,6 +526,10 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
         t.className = 'tile' + (res ? ' ' + res[c] : ch ? ' filled' : '');
       }
     }
+    if (isChal()){
+      const tgt = rows[Math.min(guesses.length, maxRows - 1)];
+      if (tgt) requestAnimationFrame(() => tgt.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    }
     // 키보드 색
     const best = {};
     guesses.forEach(g => score(g, answer).forEach((s, i) => {
@@ -412,6 +550,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   function press(k){
     if (locked) return;
     if (over){ if (k === 'Enter') newGame(); return; }
+    if (isChal() && SCRIPT_URL && !me){ askNick(); return; }
     if (k === 'Back'){ current = current.slice(0, -1); render(); return; }
     if (k === 'Enter'){ submit(); return; }
     if (current.length < len){ current += k; render(); }
@@ -431,6 +570,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     const won = guesses[guesses.length - 1] === answer;
     const lost = !won && guesses.length >= maxRows;
     if (won || lost) over = true;
+    saveChal();
 
     // 한 칸씩 뒤집기
     locked = true;
@@ -445,7 +585,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
       }, c * step);
     }
     setTimeout(() => {
-      locked = false; render();
+      locked = false; render(); if (isChal()) updateHeader();
       if (won){
         toast(rowIdx === maxRows - 1 ? '휴, 성공!' : ['천재예요!', '대단해요!', '훌륭해요!', '잘했어요!', '좋아요!'][Math.min(rowIdx, 4)]);
         finish(true);
@@ -457,6 +597,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   }
 
   function finish(won){
+    if (isChal()){ chalFinish(won); return; }
     const s = loadStats();
     s.played++;
     if (won){ s.wins++; s.streak++; s.max = Math.max(s.max, s.streak); }
@@ -473,6 +614,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   }
 
   function openStats(){
+    if (isChal()){ openChalStats(false); return; }
     const s = loadStats();
     const won = over && guesses[guesses.length - 1] === answer;
     $('resultArea').innerHTML = over
@@ -501,16 +643,155 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 
   function closeModals(){ document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('open')); }
 
+  // ---------- 챌린지: 결과·기록 ----------
+  let lastResult = null;
+  function chalFinish(won){
+    const tries = guesses.length, delta = won ? pointsFor(tries) : failOf(LV);
+    const applied = Math.max(delta, -shownTotal());
+    rec.total = Math.max(0, rec.total + delta); rec.games++;
+    if (won){ rec.wins++; rec.streak++; rec.best = Math.max(rec.best, rec.streak); } else rec.streak = 0;
+    saveRec();
+    if (serverTotal !== null) serverTotal = Math.max(0, serverTotal + delta);
+    if (won && serverWins !== null) serverWins++;
+    const nextLv = levelOf(curWins());
+    let msg = won ? `${tries}번 만에 맞혔어요.` + (bonusOf(LV) ? ` (단계 보너스 +${bonusOf(LV)}점 포함)` : '')
+                  : (applied === 0 ? '점수는 0점 아래로 내려가지 않아요. 다음 문제에서 힘내요!' : '다음 문제에서 만회해 봐요.');
+    if (nextLv > LV) msg += `<br><b>${nextLv}단계로 올라갔어요!</b> 다음 문제부터 기회 ${triesOf(nextLv)}번, 보너스 +${bonusOf(nextLv)}점, 감점 ${failOf(nextLv)}점`;
+    else if (won && LV < 5) msg += `<br>${5 - (curWins() % 5)}문제 더 맞히면 ${LV + 1}단계!`;
+    lastResult = { won, applied, msg };
+    updateHeader();
+    if (SCRIPT_URL && me){
+      pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, delta, win: won ? 1 : 0, tries, lv: LV, word: answer };
+      store.set('semdle-chal-pending', pending);
+    }
+    setTimeout(() => { openChalStats(true); sendPending(); }, 1200);
+  }
+  function openChalStats(showResult){
+    const r = showResult ? lastResult : null;
+    $('statsTitle').textContent = '챌린지 기록';
+    $('resultArea').innerHTML = (over ? `<p style="margin:0;text-align:center;color:var(--ink-soft)">${r && r.won ? '정답!' : '정답은'}</p><div class="answer">${[...answer].map(show).join('')}</div>` : '')
+      + (r ? `<div class="gain ${r.applied > 0 ? 'plus' : 'minus'}">${r.applied > 0 ? '+' + r.applied : r.applied}점</div><p class="note" style="text-align:center">${r.msg}</p>` : '')
+      + `<p class="note" style="text-align:center" id="syncMsg"></p>`;
+    const rate = rec.games ? Math.round(rec.wins / rec.games * 100) : 0;
+    $('statsGrid').innerHTML =
+      `<div><b>${shownTotal()}</b><span>누적 점수</span></div><div><b>${LV}</b><span>단계</span></div><div><b>${rate}</b><span>정답률 %</span></div><div><b>${rec.streak}</b><span>연속 정답</span></div>`;
+    const act = $('actions'); act.innerHTML = '';
+    const rk = document.createElement('button'); rk.textContent = '순위'; rk.className = 'alt'; rk.onclick = showRank; act.appendChild(rk);
+    if (over){ const nx = document.createElement('button'); nx.textContent = '다음 문제'; nx.onclick = newGame; act.appendChild(nx); }
+    else { const cl = document.createElement('button'); cl.textContent = '계속 풀기'; cl.onclick = closeModals; act.appendChild(cl); }
+    $('statsModal').classList.add('open');
+  }
+
+  // ---------- 챌린지: 순위표 ----------
+  async function api(params){
+    const r = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params).toString());
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'error');
+    return j;
+  }
+  function applyMe(j){
+    if (j && j.me && j.me.name === me){
+      serverTotal = j.me.total; serverWins = j.me.wins || 0;
+      if (isChal() && !over && !guesses.length && !current && levelOf(curWins()) !== LV){
+        LV = levelOf(curWins()); maxRows = triesOf(LV); saveChal(); buildBoard(); render();
+      }
+      if (isChal()) updateHeader();
+    }
+  }
+  async function sendPending(){
+    const sm = () => $('syncMsg') || { textContent: '' };
+    if (!pending) return;
+    if (!SCRIPT_URL || !pending.name){ pending = null; store.set('semdle-chal-pending', null); return; }
+    sm().textContent = '순위표에 점수를 보내는 중…';
+    try{
+      const j = await api(Object.assign({ action: 'add' }, pending));
+      pending = null; store.set('semdle-chal-pending', null);
+      applyMe(j);
+      sm().textContent = j.me && j.me.rank ? `순위표에 저장됐어요. 이번 주 ${j.me.weekRank}등 · 전체 ${j.me.rank}등` : '순위표에 저장됐어요.';
+      const g = $('statsGrid').querySelector('b'); if (g && isChal()) g.textContent = shownTotal();
+    }catch(e){
+      const m = String(e.message || '');
+      if (/비밀번호|없는 닉네임|막아 둔/.test(m)){ pending = null; store.set('semdle-chal-pending', null); sm().textContent = m + ' 닉네임으로 다시 들어가 주세요.'; }
+      else sm().textContent = '점수를 보내지 못했어요. 다음에 접속할 때 다시 보낼게요.';
+    }
+  }
+  let rankTab = 'week', lastBoard = null;
+  function drawBoard(){
+    const j = lastBoard; if (!j) return;
+    const wk = rankTab === 'week';
+    const list = (wk ? j.weekTop : j.top) || [];
+    const body = $('rankBody'); body.innerHTML = '';
+    list.forEach(r => {
+      const tr = document.createElement('tr'); if (r.name === me) tr.className = 'me';
+      [r.rank, r.name, r.total, r.wins, r.games].forEach((v, k) => { const td = document.createElement('td'); td.textContent = v; if (k === 2) td.className = 'pts'; tr.appendChild(td); });
+      body.appendChild(tr);
+    });
+    const cnt = wk ? j.weekPlayers : j.players;
+    $('rankMsg').textContent = (wk ? `${j.weekStart || '이번 주'} 월요일부터 · 참가자 ${cnt || 0}명 · 매주 월요일 0시에 새로 시작` : `처음부터 쌓인 점수 · 참가자 ${cnt || 0}명`) + (list.length ? '' : ' · 아직 기록이 없어요.');
+    const rk = j.me ? (wk ? j.me.weekRank : j.me.rank) : null, tot = j.me ? (wk ? j.me.weekTotal : j.me.total) : 0;
+    $('rankMe').textContent = rk && rk > 20 ? `내 순위: ${rk}등 (${tot}점)` : '';
+    $('tabWeek').classList.toggle('on', wk); $('tabAll').classList.toggle('on', !wk);
+  }
+  async function loadBoard(showUI){
+    if (!SCRIPT_URL) return;
+    if (showUI) $('rankMsg').textContent = '불러오는 중…';
+    try{
+      const j = await api(me ? { action: 'board', name: me } : { action: 'board' });
+      lastBoard = j; applyMe(j);
+      if (showUI) drawBoard();
+    }catch(e){ if (showUI) $('rankMsg').textContent = '순위를 불러오지 못했어요.'; }
+  }
+  function showRank(){
+    closeModals();
+    $('rankBody').innerHTML = ''; $('rankMe').textContent = '';
+    $('rankModal').classList.add('open');
+    if (!SCRIPT_URL){ $('rankMsg').textContent = '순위표가 아직 연결되지 않았어요.'; return; }
+    loadBoard(true);
+  }
+  function askNick(){
+    if (!SCRIPT_URL){ toast('순위표가 연결되면 닉네임으로 들어올 수 있어요'); return; }
+    closeModals();
+    $('nickInput').value = me; $('pinInput').value = ''; $('nickMsg').textContent = '';
+    $('nickModal').classList.add('open');
+    setTimeout(() => $(me ? 'pinInput' : 'nickInput').focus(), 50);
+  }
+  async function doJoin(){
+    const n = $('nickInput').value.trim(), p = $('pinInput').value.trim();
+    if (!/^[가-힣A-Za-z0-9_]{2,10}$/.test(n)){ $('nickMsg').textContent = '닉네임은 한글·영어·숫자 2~10자로 써 주세요. (띄어쓰기 없이)'; return; }
+    if (!/^\d{4}$/.test(p)){ $('nickMsg').textContent = '비밀번호는 숫자 4자리로 써 주세요.'; return; }
+    $('nickMsg').textContent = '확인하는 중…'; $('nickOk').disabled = true;
+    try{
+      const j = await api({ action: 'join', name: n, pin: p });
+      if (n !== me) rec = Object.assign({}, EMPTY, store.get('semdle-chal-rec:' + n, {}));
+      me = n; pin = p; store.set('semdle-chal-name', me); store.set('semdle-chal-pin', pin);
+      serverTotal = null; serverWins = null; lastBoard = j; applyMe(j);
+      closeModals(); updateHeader();
+      toast(j.created ? `${me}님, 새로 참가했어요!` : `${me}님, 다시 왔군요!`);
+    }catch(e){ $('nickMsg').textContent = e.message === 'Failed to fetch' ? '연결하지 못했어요. 인터넷을 확인해 주세요.' : e.message; }
+    $('nickOk').disabled = false;
+  }
+  $('nickOk').onclick = doJoin;
+  $('nickCancel').onclick = () => { closeModals(); if (!me) leaveChallenge(); };
+  $('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); doJoin(); } });
+  $('nickInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); $('pinInput').focus(); } });
+  $('nickBtn').onclick = askNick;
+  $('rankBtn').onclick = showRank;
+  $('rankRefresh').onclick = () => loadBoard(true);
+  $('tabWeek').onclick = () => { rankTab = 'week'; drawBoard(); };
+  $('tabAll').onclick = () => { rankTab = 'all'; drawBoard(); };
+
   // ---------- 이벤트 ----------
   document.querySelectorAll('[data-len]').forEach(b => {
-    b.setAttribute('aria-pressed', +b.dataset.len === len);
     b.addEventListener('click', () => {
-      len = +b.dataset.len; store.set('semdle-len', len);
-      document.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', x === b));
-      b.blur(); newGame();
+      store.set('semdle-len', +b.dataset.len);
+      b.blur();
+      if (isChal()) leaveChallenge(+b.dataset.len);
+      else { len = +b.dataset.len; newGame(); }
     });
   });
+  document.querySelector('[data-chal]').addEventListener('click', e => { e.currentTarget.blur(); if (!isChal()) enterChallenge(); });
   function setTries(n){
+    if (isChal()) return;
     const inGame = guesses.length > 0 && !over;
     maxRows = Math.max(3, Math.min(10, n)); store.set('semdle-tries', maxRows);
     if (inGame && guesses.length < maxRows){
@@ -524,11 +805,11 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   $('helpBtn').onclick = () => $('helpModal').classList.add('open');
   $('statsBtn').onclick = openStats;
   document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModals);
-  document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModals(); }));
+  document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m && m.id !== 'nickModal') closeModals(); }));
 
   document.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (document.querySelector('.modal-bg.open')){ if (e.key === 'Escape') closeModals(); return; }
+    if (document.querySelector('.modal-bg.open')){ if (e.key === 'Escape' && !$('nickModal').classList.contains('open')) closeModals(); return; }
     let k = e.key;
     if (k === 'Enter' || k === 'Backspace'){ e.preventDefault(); press(k === 'Enter' ? 'Enter' : 'Back'); return; }
     if (k === '*' || k === 'x' || k === 'X') k = '×';
@@ -537,7 +818,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   });
   window.addEventListener('resize', () => boardEl.style.setProperty('--ts', tileSize() + 'px'));
 
-  newGame();
+  if (isChal()) enterChallenge(); else newGame();
+  if (SCRIPT_URL && pending) sendPending();
   if (!store.get('semdle-seen', false)){ $('helpModal').classList.add('open'); store.set('semdle-seen', true); }
 })();
 </script>
