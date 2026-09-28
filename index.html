@@ -230,6 +230,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .tile.bounce{animation:bounce .6s ease both}
 
 @media (max-width:370px){.icon-btn{width:36px;height:36px}h1{font-size:1.65rem}}
+.crowd{margin:0 0 2px;text-align:right;font-size:.8rem;color:var(--ink-soft)}
+.crowd b{font-family:"Jua",sans-serif;font-weight:400;font-size:.95rem;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -261,6 +263,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <span><button class="pill" id="nickBtn">닉네임 쓰기</button> 누적 <b id="chalTotal">0</b>점</span>
     <button class="pill main" id="rankBtn">순위</button>
   </div>
+  <p class="crowd" id="crowd" hidden></p>
   <p class="subtitle" id="subtitle"></p>
 
   <div class="board-wrap"><div class="board" id="board"></div></div>
@@ -525,6 +528,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     document.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', !chal && +x.dataset.len === len));
     document.querySelectorAll('[data-chal]').forEach(x => x.setAttribute('aria-pressed', chal && +x.dataset.chal === chalLen));
     checkUnlock();
+    renderCrowd();
     if (chal){
       $('countNo').textContent = '';
       $('nickBtn').textContent = me || '닉네임 쓰기';
@@ -565,8 +569,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       answer = g.answer; guesses = g.guesses || []; over = false; current = '';
       updateHeader(); buildBoard(); buildKeyboard(); render();
     } else newGame();
-    if (SCRIPT_URL && !me) askNick();
-    else if (SCRIPT_URL) loadBoard(false);
+    if (SCRIPT_URL){ loadBoard(false); if (!me) askNick(); }
   }
   function leaveChallenge(newLen){
     saveChal();
@@ -968,7 +971,22 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (!j.ok) throw new Error(j.error || 'error');
     return j;
   }
+  const crowdBy = {};
+  function renderCrowd(){
+    const c = crowdBy[chalLen], el = $('crowd');
+    if (!isChal() || !c){ el.hidden = true; return; }
+    const f = n => Number(n).toLocaleString('ko-KR');
+    const parts = [`오늘 <b>${f(c.today)}</b>명`, `누적 <b>${f(c.total)}</b>명`];
+    if (typeof c.games === 'number') parts.push(`<b>${f(c.games)}</b>문제 풀이`);
+    el.innerHTML = `${chalLen}칸 챌린지 · ` + parts.join(' · ');
+    el.hidden = false;
+  }
   function applyMe(j){
+    if (j && j.len && +j.len !== chalLen){
+      if (typeof j.players === 'number') crowdBy[+j.len] = { today: j.todayPlayers || 0, total: j.players, games: j.totalGames };
+      return; /* 다른 칸 수의 응답은 점수·해금에 쓰지 않음 */
+    }
+    if (j && typeof j.players === 'number'){ crowdBy[chalLen] = { today: j.todayPlayers || 0, total: j.players, games: j.totalGames }; renderCrowd(); }
     if (j && j.me && j.me.name === me){
       serverTotal = j.me.total; serverWins = j.me.wins || 0;
       if (isChal() && !over && !guesses.length && !current && levelOf(curWins()) !== LV){
@@ -1016,6 +1034,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (showUI) $('rankMsg').textContent = '불러오는 중…';
     try{
       const j = await api(me ? { action: 'board', name: me, len: chalLen } : { action: 'board', len: chalLen });
+      if (j.len && +j.len !== chalLen){ applyMe(j); return; }
       lastBoard = j; applyMe(j);
       if (showUI) drawBoard();
     }catch(e){ if (showUI) $('rankMsg').textContent = '순위를 불러오지 못했어요.'; }
