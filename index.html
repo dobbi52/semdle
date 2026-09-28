@@ -190,7 +190,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .fx-flash{position:fixed;inset:0;pointer-events:none;z-index:49;background:radial-gradient(circle at 50% 40%,rgba(255,215,90,.9),rgba(255,215,90,0) 60%);animation:flash 1.1s ease-out forwards}
 .fx-word{position:fixed;left:50%;top:38%;z-index:51;pointer-events:none;font-family:"Jua",sans-serif;font-size:3.2rem;color:#E8B83C;text-shadow:0 2px 0 #7A5A10,0 0 18px rgba(255,215,90,.8);animation:bigword 1.6s ease-out forwards;white-space:nowrap}
 .tile.bounce{animation:bounce .6s ease both}
-@media (prefers-reduced-motion:reduce){.fx,.fx-flash,.fx-word{display:none}.tile.bounce{animation:none}}
+
 @media (max-width:370px){.icon-btn{width:36px;height:36px}h1{font-size:1.65rem}}
 </style>
 </head>
@@ -282,6 +282,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <b>맞힐 때 효과</b>
     <div class="skins" id="fxBox"></div>
     <p class="note">빨리 맞힐수록 효과가 더 크게 나와요. 효과를 누르면 미리 볼 수 있어요.</p>
+    <label class="check"><input type="checkbox" id="cbFx"> 맞힐 때 효과 보기</label>
     <label class="check"><input type="checkbox" id="cbSafe"> 잘 보이는 색 (초록·노랑 구분이 어려울 때)</label>
   </div>
 </div>
@@ -794,7 +795,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       spawn(Math.round(40 * k), e => { e.textContent = '✦'; e.style.cssText = `left:${rnd(0, 100)}vw;top:${rnd(-5, 30)}vh;font-size:${rnd(14, 28)}px;color:#F5C84A;text-shadow:0 0 10px rgba(255,210,80,1);animation:twinkle ${rnd(1.3, 2.2)}s ease-in ${rnd(0, .5)}s forwards`; });
     }
   }
-  function winFx(tries){ playFx(store.get(skinKey('fx'), 'bounce'), tries <= 2 ? 1.8 : tries <= 4 ? 1.3 : 1); }
+  function winFx(tries){ if (!store.get('semdle-fxOn', true)) return; playFx(store.get(skinKey('fx'), 'bounce'), tries <= 2 ? 1.8 : tries <= 4 ? 1.3 : 1); }
   function showSkins(){
     closeModals();
     const best = bestScore(), cur = store.get(skinKey('skin'), ''), fcur = store.get(skinKey('fx'), 'bounce');
@@ -816,9 +817,11 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     });
     $('skinMsg').textContent = `챌린지 최고 누적 ${best}점 · ${nextRewardText()}. 한 번 열린 판과 효과는 점수가 줄어도 계속 쓸 수 있어요. 판은 연습에서도 쓰여요.`;
     $('cbSafe').checked = store.get('semdle-safe', false);
+    $('cbFx').checked = store.get('semdle-fxOn', true);
     $('skinModal').classList.add('open');
   }
   $('skinBtn').onclick = showSkins;
+  $('cbFx').addEventListener('change', e => store.set('semdle-fxOn', e.target.checked));
   $('cbSafe').addEventListener('change', e => { store.set('semdle-safe', e.target.checked); applySkin(store.get(skinKey('skin'), '')); });
 
   let lastResult = null;
