@@ -153,6 +153,45 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .rule td:last-child{text-align:right}
 .board-wrap.scroll{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 0}
 .board-wrap.scroll .row{scroll-margin:6px}
+
+/* ── 꾸미기 테마 ── */
+:root[data-skin="chalk"]{--paper:#27402F;--grid:#314D3A;--ink:#F1F5EC;--ink-soft:#BFD0BA;--tile-bg:#2F4B38;--tile-line:#5E7E66;--key:#3C5C46;--key-ink:#F1F5EC;--key-off:#1A2A20;--key-off-ink:#5E7466;--modal:#2F4B38;--green:#3FA66B;--amber:#E2B23E;--gray:#5F6B64}
+:root[data-skin="sea"]{--paper:#E6F4FA;--grid:#CBE6F2;--ink:#123247;--ink-soft:#4E6E82;--tile-bg:#FFFFFF;--tile-line:#8EC2DC;--key:#CDE7F3;--key-ink:#123247;--key-off:#7E8C96;--key-off-ink:#E6EDF1;--modal:#FFFFFF;--green:#2E8F68;--amber:#E0A43A;--gray:#7E8C96}
+:root[data-skin="cherry"]{--paper:#FFF3F5;--grid:#FBDCE4;--ink:#3E1F2A;--ink-soft:#8A5A68;--tile-bg:#FFFFFF;--tile-line:#EDB2C2;--key:#FBDDE5;--key-ink:#3E1F2A;--key-off:#8E8288;--key-off-ink:#F2E9EC;--modal:#FFFFFF;--green:#2E8F68;--amber:#E0A43A;--gray:#8E8288}
+:root[data-skin="night"]{--paper:#131A33;--grid:#1B2445;--ink:#EEF1FF;--ink-soft:#AEB6DA;--tile-bg:#1C2548;--tile-line:#4B5A9A;--key:#2A3461;--key-ink:#EEF1FF;--key-off:#0D1226;--key-off-ink:#4B537A;--modal:#1C2548;--green:#3AAE77;--amber:#E6B43F;--gray:#4E5675}
+:root[data-skin="space"]{--paper:#0D0A1E;--grid:#16112E;--ink:#F2EEFF;--ink-soft:#B6ABDD;--tile-bg:#19143A;--tile-line:#5C47B8;--key:#271F52;--key-ink:#F2EEFF;--key-off:#08061A;--key-off-ink:#4A4270;--modal:#19143A;--green:#35B27A;--amber:#EDB941;--gray:#4B4568}
+:root[data-skin="gold"]{--paper:#1E170A;--grid:#2A2010;--ink:#FFF4D6;--ink-soft:#D9C58F;--tile-bg:#2A2010;--tile-line:#8A6D2A;--key:#3A2D14;--key-ink:#FFE9A8;--key-off:#140F05;--key-off-ink:#5A4C2C;--modal:#2A2010;--green:#3AA872;--amber:#E8B83C;--gray:#5A5040}
+:root[data-skin="night"] body{background-image:radial-gradient(1.2px 1.2px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 80px 70px,#cfd6ff,transparent),radial-gradient(1.5px 1.5px at 140px 20px,#fff,transparent);background-size:170px 110px}
+:root[data-skin="space"] body{background-image:radial-gradient(ellipse at 20% 20%,rgba(143,116,255,.25),transparent 55%),radial-gradient(ellipse at 85% 75%,rgba(64,190,220,.18),transparent 50%),radial-gradient(1px 1px at 30px 40px,#fff,transparent);background-size:100% 100%,100% 100%,90px 90px}
+:root[data-skin="cherry"] body{background-image:radial-gradient(circle at 20% 30%,rgba(226,151,172,.25) 0 5px,transparent 6px),radial-gradient(circle at 70% 60%,rgba(226,151,172,.2) 0 4px,transparent 5px);background-size:90px 90px,70px 70px}
+:root[data-skin="sea"] body{background-image:repeating-radial-gradient(circle at 0 100%,transparent 0 18px,rgba(95,163,200,.12) 18px 20px)}
+:root[data-skin="gold"] body{background-image:linear-gradient(135deg,rgba(217,178,76,.08) 25%,transparent 25%,transparent 50%,rgba(217,178,76,.08) 50%,rgba(217,178,76,.08) 75%,transparent 75%);background-size:28px 28px}
+:root[data-skin="night"] .tile,:root[data-skin="space"] .tile{border-radius:50%}
+:root[data-skin="gold"] .tile{border-radius:4px}
+:root[data-safe="1"]{--green:#0072B2!important;--amber:#E69F00!important}
+.skins{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0 10px}
+.skin{border:2px solid var(--tile-line);border-radius:10px;padding:8px;text-align:left;background:transparent;color:var(--ink);font-family:inherit;cursor:pointer}
+.skin.on{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
+.skin.lock{opacity:.5}
+.skin .sw{display:flex;gap:3px;margin-bottom:6px}
+.skin .sw i{width:18px;height:18px;border-radius:3px;display:block}
+.skin b{display:block;font-size:.95rem}
+.skin small{font-size:.78rem;color:var(--ink-soft)}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.8}}
+@keyframes fallsway{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(18px,26vh) rotate(90deg)}50%{transform:translate(-14px,52vh) rotate(180deg)}75%{transform:translate(16px,78vh) rotate(270deg)}100%{transform:translate(0,106vh) rotate(360deg);opacity:.7}}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.9}100%{transform:translateY(-110vh) scale(1.1);opacity:0}}
+@keyframes twinkle{0%{transform:translateY(0) scale(.4) rotate(0);opacity:0}20%{opacity:1}100%{transform:translateY(80vh) scale(1) rotate(200deg);opacity:0}}
+@keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+@keyframes flash{0%{opacity:0}30%{opacity:.55}100%{opacity:0}}
+@keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-28%)}70%{transform:translateY(-8%)}}
+@keyframes bigword{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-50%) scale(1.15);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.fx{position:fixed;pointer-events:none;z-index:50;display:block}
+.fx-flash{position:fixed;inset:0;pointer-events:none;z-index:49;background:radial-gradient(circle at 50% 40%,rgba(255,215,90,.9),rgba(255,215,90,0) 60%);animation:flash 1.1s ease-out forwards}
+.fx-word{position:fixed;left:50%;top:38%;z-index:51;pointer-events:none;font-family:"Jua",sans-serif;font-size:3.2rem;color:#E8B83C;text-shadow:0 2px 0 #7A5A10,0 0 18px rgba(255,215,90,.8);animation:bigword 1.6s ease-out forwards;white-space:nowrap}
+.tile.bounce{animation:bounce .6s ease both}
+@media (prefers-reduced-motion:reduce){.fx,.fx-flash,.fx-word{display:none}.tile.bounce{animation:none}}
+@media (max-width:370px){.icon-btn{width:36px;height:36px}h1{font-size:1.65rem}}
 </style>
 </head>
 <body>
@@ -162,6 +201,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <div style="display:flex;gap:8px">
       <button class="icon-btn" id="newBtn" aria-label="새 문제">↻</button>
       <button class="icon-btn" id="helpBtn" aria-label="게임 방법">?</button>
+      <button class="icon-btn" id="skinBtn" aria-label="꾸미기">🎨</button>
       <button class="icon-btn" id="statsBtn" aria-label="기록 보기">▥</button>
     </div>
   </header>
@@ -229,6 +269,20 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
       <tr><td>6단계 (15~17개)</td><td>5번 · +25 · −60</td></tr>
       <tr><td>7단계 (18개 이상)</td><td>4번 · +30 · −70</td></tr>
     </table>
+  </div>
+</div>
+
+<div class="modal-bg" id="skinModal">
+  <div class="modal" role="dialog" aria-labelledby="skinTitle">
+    <button class="close" data-close aria-label="닫기">×</button>
+    <h2 id="skinTitle">꾸미기</h2>
+    <p class="note" id="skinMsg"></p>
+    <b>판</b>
+    <div class="skins" id="skinBox"></div>
+    <b>맞힐 때 효과</b>
+    <div class="skins" id="fxBox"></div>
+    <p class="note">빨리 맞힐수록 효과가 더 크게 나와요. 효과를 누르면 미리 볼 수 있어요.</p>
+    <label class="check"><input type="checkbox" id="cbSafe"> 잘 보이는 색 (초록·노랑 구분이 어려울 때)</label>
   </div>
 </div>
 
@@ -431,6 +485,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     document.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', !chal && +x.dataset.len === len));
     document.querySelectorAll('[data-chal]').forEach(x => x.setAttribute('aria-pressed', chal && +x.dataset.chal === chalLen));
     if (chal){
+      checkUnlock();
       $('countNo').textContent = '';
       $('nickBtn').textContent = me || '닉네임 쓰기';
       $('chalTotal').textContent = shownTotal();
@@ -610,6 +665,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   }
 
   function finish(won){
+    if (won) winFx(guesses.length);
     if (isChal()){ chalFinish(won); return; }
     const s = loadStats();
     s.played++;
@@ -657,8 +713,117 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   function closeModals(){ document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('open')); }
 
   // ---------- 챌린지: 결과·기록 ----------
+  // ---------- 꾸미기 (챌린지 점수 업적) ----------
+  const SKINS = [
+    { id: '', name: '모눈종이', need: 0, sw: ['#F5F9FC', '#B9CCDD', '#1F2A44'] },
+    { id: 'chalk', name: '칠판', need: 200, sw: ['#27402F', '#CFE0C7', '#E2B23E'] },
+    { id: 'sea', name: '바다', need: 500, sw: ['#E6F4FA', '#5FA3C8', '#2E8F68'] },
+    { id: 'cherry', name: '벚꽃', need: 1000, sw: ['#FFF3F5', '#E297AC', '#3E1F2A'] },
+    { id: 'night', name: '밤하늘', need: 1800, sw: ['#131A33', '#6C7FD1', '#E6B43F'] },
+    { id: 'space', name: '우주', need: 3000, sw: ['#0D0A1E', '#8F74FF', '#35B27A'] },
+    { id: 'gold', name: '황금판', need: 5000, sw: ['#1E170A', '#D9B24C', '#FFF4D6'] }
+  ];
+  const FXS = [
+    { id: 'bounce', name: '통통', icon: '⬆️', need: 0 },
+    { id: 'confetti', name: '색종이', icon: '🎉', need: 100 },
+    { id: 'bubble', name: '물방울', icon: '🫧', need: 350 },
+    { id: 'petal', name: '꽃잎', icon: '🌸', need: 750 },
+    { id: 'star', name: '별똥별', icon: '⭐', need: 1400 },
+    { id: 'firework', name: '불꽃놀이', icon: '🎆', need: 2400 },
+    { id: 'gold', name: '황금빛', icon: '👑', need: 4000 }
+  ];
+  let justFinished = false;
+  const skinKey = k => `semdle-${k}:${me || '_'}`;
+  const bestScore = () => Math.max(store.get(skinKey('best'), 0), shownTotal());
+  function applySkin(id){
+    if (id) document.documentElement.setAttribute('data-skin', id); else document.documentElement.removeAttribute('data-skin');
+    document.documentElement.setAttribute('data-safe', store.get('semdle-safe', false) ? '1' : '0');
+  }
+  function checkUnlock(){
+    const best = bestScore();
+    store.set(skinKey('best'), best);
+    const opened = SKINS.filter(x => best >= x.need).length, prev = store.get(skinKey('opened'), null);
+    store.set(skinKey('opened'), opened);
+    if (prev !== null && opened > prev && justFinished){
+      const sk = SKINS[opened - 1]; store.set(skinKey('skin'), sk.id); applySkin(sk.id);
+      setTimeout(() => { toast(`새 판이 열렸어요! '${sk.name}' 판으로 바뀌었어요`, 2400); playFx('confetti', 1.2, true); }, 400);
+    } else {
+      if (store.get(skinKey('skin'), null) === null || (prev !== null && opened > prev)) store.set(skinKey('skin'), SKINS[Math.max(0, opened - 1)].id);
+      applySkin(store.get(skinKey('skin'), ''));
+    }
+    const fo = FXS.filter(x => best >= x.need).length, fp = store.get(skinKey('fxOpened'), null);
+    store.set(skinKey('fxOpened'), fo);
+    if (fp !== null && fo > fp && justFinished){
+      const f = FXS[fo - 1]; store.set(skinKey('fx'), f.id);
+      setTimeout(() => toast(`새 효과가 열렸어요! 이제 맞히면 '${f.name}' ${f.icon}`, 2400), opened > prev ? 2600 : 400);
+    } else if (store.get(skinKey('fx'), null) === null || (fp !== null && fo > fp)) store.set(skinKey('fx'), FXS[Math.max(0, fo - 1)].id);
+  }
+  function nextRewardText(){
+    const best = bestScore();
+    const all = SKINS.map(x => ({ n: `'${x.name}' 판`, need: x.need })).concat(FXS.map(x => ({ n: `'${x.name}' 효과`, need: x.need }))).sort((a, b) => a.need - b.need);
+    const nx = all.find(x => x.need > best);
+    return nx ? `${nx.n}까지 ${nx.need - best}점` : '모든 꾸미기를 열었어요!';
+  }
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function spawn(n, make){ for (let i = 0; i < n; i++){ const e = document.createElement('span'); e.className = 'fx'; make(e, i); document.body.appendChild(e); setTimeout(() => e.remove(), 3600); } }
+  function playFx(id, power, noBounce){
+    const k = power || 1;
+    const row = boardEl.children[Math.max(0, guesses.length - 1)];
+    if (!noBounce && row && guesses.length) [...row.children].forEach((t, i) => { t.classList.remove('bounce'); void t.offsetWidth; t.style.animationDelay = (i * 70) + 'ms'; t.classList.add('bounce'); });
+    if (id === 'bounce') return;
+    if (id === 'confetti'){
+      const cols = ['#2E9E6A', '#E3A23A', '#E297AC', '#5FA3C8', '#8F74FF', '#E0663C'];
+      spawn(Math.round(45 * k), (e, i) => { e.style.cssText = `left:${rnd(0, 100)}vw;top:-14px;width:9px;height:14px;border-radius:2px;background:${cols[i % cols.length]};animation:fall ${rnd(1.3, 2.3)}s ease-in ${rnd(0, .5)}s forwards`; });
+    } else if (id === 'bubble'){
+      spawn(Math.round(30 * k), e => { const d = rnd(12, 34); e.style.cssText = `left:${rnd(0, 100)}vw;bottom:-40px;width:${d}px;height:${d}px;border-radius:50%;border:2px solid rgba(95,163,200,.9);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.9),rgba(160,215,240,.25) 60%);animation:rise ${rnd(1.6, 2.8)}s ease-out ${rnd(0, .6)}s forwards`; });
+    } else if (id === 'petal'){
+      const cols = ['#F7B6C8', '#F28DA9', '#FFD3DE'];
+      spawn(Math.round(36 * k), (e, i) => { e.style.cssText = `left:${rnd(0, 100)}vw;top:-16px;width:14px;height:10px;border-radius:70% 0 70% 0;background:${cols[i % 3]};animation:fallsway ${rnd(2, 3.2)}s ease-in ${rnd(0, .7)}s forwards`; });
+    } else if (id === 'star'){
+      spawn(Math.round(30 * k), e => { e.textContent = Math.random() < .5 ? '★' : '✦'; e.style.cssText = `left:${rnd(0, 100)}vw;top:${rnd(-5, 25)}vh;font-size:${rnd(14, 30)}px;color:${Math.random() < .6 ? '#FFE27A' : '#FFFFFF'};text-shadow:0 0 8px rgba(255,230,120,.9);animation:twinkle ${rnd(1.4, 2.4)}s ease-in ${rnd(0, .6)}s forwards`; });
+    } else if (id === 'firework'){
+      const cols = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#C77DFF'];
+      const bursts = Math.round(3 * k);
+      for (let b = 0; b < bursts; b++){
+        const cx = rnd(15, 85), cy = rnd(15, 50), col = cols[b % cols.length], delay = b * .35;
+        spawn(22, (e, i) => { const a = i / 22 * Math.PI * 2, r = rnd(70, 130); e.style.cssText = `left:${cx}vw;top:${cy}vh;width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col};--dx:${Math.cos(a) * r}px;--dy:${Math.sin(a) * r}px;animation:burst 1s ease-out ${delay}s forwards`; });
+      }
+    } else if (id === 'gold'){
+      const f = document.createElement('div'); f.className = 'fx-flash'; document.body.appendChild(f); setTimeout(() => f.remove(), 1300);
+      const w = document.createElement('div'); w.className = 'fx-word'; w.textContent = k > 1.5 ? '완벽!' : '정답!'; document.body.appendChild(w); setTimeout(() => w.remove(), 1800);
+      spawn(Math.round(40 * k), e => { e.textContent = '✦'; e.style.cssText = `left:${rnd(0, 100)}vw;top:${rnd(-5, 30)}vh;font-size:${rnd(14, 28)}px;color:#F5C84A;text-shadow:0 0 10px rgba(255,210,80,1);animation:twinkle ${rnd(1.3, 2.2)}s ease-in ${rnd(0, .5)}s forwards`; });
+    }
+  }
+  function winFx(tries){ playFx(store.get(skinKey('fx'), 'bounce'), tries <= 2 ? 1.8 : tries <= 4 ? 1.3 : 1); }
+  function showSkins(){
+    closeModals();
+    const best = bestScore(), cur = store.get(skinKey('skin'), ''), fcur = store.get(skinKey('fx'), 'bounce');
+    const box = $('skinBox'); box.innerHTML = '';
+    SKINS.forEach(sk => {
+      const open = best >= sk.need;
+      const b = document.createElement('button'); b.className = 'skin' + (open ? '' : ' lock') + (open && sk.id === cur ? ' on' : '');
+      b.innerHTML = `<span class="sw">${sk.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span><b>${open ? '' : '🔒 '}${sk.name}</b><small>${open ? (sk.id === cur ? '사용 중' : '누르면 바꿔요') : sk.need + '점에 열려요'}</small>`;
+      b.onclick = () => { if (!open){ toast(`${sk.need}점을 넘으면 열려요`); return; } store.set(skinKey('skin'), sk.id); applySkin(sk.id); showSkins(); };
+      box.appendChild(b);
+    });
+    const fbox = $('fxBox'); fbox.innerHTML = '';
+    FXS.forEach(f => {
+      const open = best >= f.need;
+      const b = document.createElement('button'); b.className = 'skin' + (open ? '' : ' lock') + (open && f.id === fcur ? ' on' : '');
+      b.innerHTML = `<b>${open ? f.icon : '🔒'} ${f.name}</b><small>${open ? (f.id === fcur ? '사용 중' : '누르면 바꿔요') : f.need + '점에 열려요'}</small>`;
+      b.onclick = () => { if (!open){ toast(`${f.need}점을 넘으면 열려요`); return; } store.set(skinKey('fx'), f.id); showSkins(); setTimeout(() => playFx(f.id, 1, true), 150); };
+      fbox.appendChild(b);
+    });
+    $('skinMsg').textContent = `챌린지 최고 누적 ${best}점 · ${nextRewardText()}. 한 번 열린 판과 효과는 점수가 줄어도 계속 쓸 수 있어요. 판은 연습에서도 쓰여요.`;
+    $('cbSafe').checked = store.get('semdle-safe', false);
+    $('skinModal').classList.add('open');
+  }
+  $('skinBtn').onclick = showSkins;
+  $('cbSafe').addEventListener('change', e => { store.set('semdle-safe', e.target.checked); applySkin(store.get(skinKey('skin'), '')); });
+
   let lastResult = null;
   function chalFinish(won){
+    justFinished = true; setTimeout(() => { justFinished = false; }, 8000);
     const tries = guesses.length, delta = won ? pointsFor(tries) : failOf(LV);
     const applied = Math.max(delta, -shownTotal());
     rec.total = Math.max(0, rec.total + delta); rec.games++;
@@ -673,6 +838,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     else if (won && LV < MAX_LV) msg += `<br>${PER_LV - (curWins() % PER_LV)}문제 더 맞히면 ${LV + 1}단계!`;
     lastResult = { won, applied, msg };
     updateHeader();
+    lastResult.msg += `<br>${nextRewardText()}`;
     if (SCRIPT_URL && me){
       pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, delta, win: won ? 1 : 0, tries, lv: LV, len: chalLen, word: answer };
       store.set('semdle-chal-pending', pending);
@@ -832,6 +998,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   });
   window.addEventListener('resize', () => boardEl.style.setProperty('--ts', tileSize() + 'px'));
 
+  checkUnlock();
   if (isChal()) enterChallenge(); else newGame();
   if (SCRIPT_URL && pending) sendPending();
   if (!store.get('semdle-seen', false)){ $('helpModal').classList.add('open'); store.set('semdle-seen', true); }
