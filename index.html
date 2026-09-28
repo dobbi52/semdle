@@ -168,8 +168,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 
   <div class="modes">
     <div class="seg" role="group" aria-label="칸 수">
-      <button data-len="6" aria-pressed="false">6칸 쉬움</button>
-      <button data-len="8" aria-pressed="true">8칸 보통</button>
+      <button data-len="6" aria-pressed="false">6칸 연습</button>
+      <button data-len="8" aria-pressed="true">8칸 연습</button>
       <button data-chal="6" aria-pressed="false">6칸 챌린지</button>
       <button data-chal="8" aria-pressed="false">8칸 챌린지</button>
     </div>
@@ -219,13 +219,15 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
       <tr><td>한 번 늦을 때마다</td><td>−10점</td></tr>
       <tr><td>못 맞히면</td><td>단계 × 10점 감점</td></tr>
     </table>
-    <p>5문제 맞힐 때마다 단계가 올라가요. 기회는 줄고 감점은 커지지만, 맞히면 보너스를 받아요. 점수는 0점 아래로 내려가지 않아요.</p>
+    <p>3문제 맞힐 때마다 단계가 올라가요. 기회는 줄고 감점은 커지지만, 맞히면 보너스를 받아요. 점수는 0점 아래로 내려가지 않아요.</p>
     <table class="rule">
-      <tr><td>1단계 (0~4개 맞힘)</td><td>10번 · 감점 −10</td></tr>
-      <tr><td>2단계 (5~9개)</td><td>9번 · +5 · −20</td></tr>
-      <tr><td>3단계 (10~14개)</td><td>8번 · +10 · −30</td></tr>
-      <tr><td>4단계 (15~19개)</td><td>7번 · +15 · −40</td></tr>
-      <tr><td>5단계 (20개 이상)</td><td>6번 · +20 · −50</td></tr>
+      <tr><td>1단계 (0~2개 맞힘)</td><td>10번 · 감점 −10</td></tr>
+      <tr><td>2단계 (3~5개)</td><td>9번 · +5 · −20</td></tr>
+      <tr><td>3단계 (6~8개)</td><td>8번 · +10 · −30</td></tr>
+      <tr><td>4단계 (9~11개)</td><td>7번 · +15 · −40</td></tr>
+      <tr><td>5단계 (12~14개)</td><td>6번 · +20 · −50</td></tr>
+      <tr><td>6단계 (15~17개)</td><td>5번 · +25 · −60</td></tr>
+      <tr><td>7단계 (18개 이상)</td><td>4번 · +30 · −70</td></tr>
     </table>
   </div>
 </div>
@@ -395,7 +397,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   let chalLen = store.get('semdle-chal-len', 8);
 
   // ---------- 챌린지 상태 ----------
-  const levelOf = w => Math.min(5, Math.floor(w / 5) + 1);
+  const MAX_LV = 7, PER_LV = 3;
+  const levelOf = w => Math.min(MAX_LV, Math.floor(w / PER_LV) + 1);
   const triesOf = l => 11 - l;
   const bonusOf = l => (l - 1) * 5;
   const failOf = l => -10 * l;
@@ -667,7 +670,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     let msg = won ? `${tries}번 만에 맞혔어요.` + (bonusOf(LV) ? ` (단계 보너스 +${bonusOf(LV)}점 포함)` : '')
                   : (applied === 0 ? '점수는 0점 아래로 내려가지 않아요. 다음 문제에서 힘내요!' : '다음 문제에서 만회해 봐요.');
     if (nextLv > LV) msg += `<br><b>${nextLv}단계로 올라갔어요!</b> 다음 문제부터 기회 ${triesOf(nextLv)}번, 보너스 +${bonusOf(nextLv)}점, 감점 ${failOf(nextLv)}점`;
-    else if (won && LV < 5) msg += `<br>${5 - (curWins() % 5)}문제 더 맞히면 ${LV + 1}단계!`;
+    else if (won && LV < MAX_LV) msg += `<br>${PER_LV - (curWins() % PER_LV)}문제 더 맞히면 ${LV + 1}단계!`;
     lastResult = { won, applied, msg };
     updateHeader();
     if (SCRIPT_URL && me){
