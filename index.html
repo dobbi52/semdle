@@ -232,6 +232,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 @media (max-width:370px){.icon-btn{width:36px;height:36px}h1{font-size:1.65rem}}
 .crowd{margin:0 0 2px;text-align:right;font-size:.8rem;color:var(--ink-soft)}
 .crowd b{font-family:"Jua",sans-serif;font-weight:400;font-size:.95rem;color:var(--ink)}
+.rtabs button{white-space:nowrap;font-size:.88rem;padding:8px 4px}
 </style>
 </head>
 <body>
@@ -326,6 +327,11 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <label class="check"><input type="checkbox" id="cbFx"> 맞힐 때 효과 보기</label>
     <label class="check"><input type="checkbox" id="cbSafe"> 잘 보이는 색 (초록·노랑 구분이 어려울 때)</label>
     <div class="actions" style="margin-top:12px"><button class="alt" id="pvBtn">선생님 미리 보기</button></div>
+    <div id="pvBox" hidden style="margin-top:8px">
+      <input type="password" id="pvPw" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="선생님 비밀번호">
+      <div class="actions" style="margin-top:6px"><button id="pvOk">확인</button></div>
+      <p class="note" id="pvMsg" style="color:#C0503A;min-height:1.2em"></p>
+    </div>
   </div>
 </div>
 
@@ -347,9 +353,9 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   <div class="modal" role="dialog" aria-labelledby="rankTitle">
     <button class="close" data-close aria-label="닫기">×</button>
     <h2 id="rankTitle">순위 (20위까지)</h2>
-    <div class="rtabs"><button id="tabWeek" class="on">이번 주</button><button id="tabAll">전체 누적</button></div>
+    <div class="rtabs"><button id="tabWeek" class="on">이번 주</button><button id="tabAll">전체 누적</button><button id="tabRecent">최근 5게임</button></div>
     <p class="note" id="rankMsg"></p>
-    <table class="lb"><thead><tr><th>순위</th><th>닉네임</th><th>점수</th><th>맞힘</th><th>문제</th></tr></thead><tbody id="rankBody"></tbody></table>
+    <table class="lb"><thead id="rankHead"><tr><th>순위</th><th>닉네임</th><th>점수</th><th>맞힘</th><th>문제</th></tr></thead><tbody id="rankBody"></tbody></table>
     <p class="note" id="rankMe"></p>
     <div class="actions" style="margin-top:10px"><button class="alt" id="rankRefresh">새로고침</button><button data-close>닫기</button></div>
   </div>
@@ -922,13 +928,18 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     $('pvBtn').textContent = pvMode ? '미리 보기 끝내기' : '선생님 미리 보기';
     $('skinModal').classList.add('open');
   }
-  $('skinBtn').onclick = () => { pvMode = false; showSkins(); };
+  $('skinBtn').onclick = () => { pvMode = false; $('pvBox').hidden = true; showSkins(); };
   $('pvBtn').onclick = () => {
-    if (pvMode){ pvMode = false; showSkins(); return; }
-    const v = prompt('선생님 비밀번호를 입력하세요');
-    if (v === null) return;
-    if (v.trim() === '9900'){ pvMode = true; showSkins(); toast('미리 보기: 잠긴 판과 효과를 눌러 보세요'); } else toast('비밀번호가 맞지 않아요');
+    if (pvMode){ pvMode = false; $('pvBox').hidden = true; showSkins(); return; }
+    const box = $('pvBox'); box.hidden = !box.hidden; $('pvMsg').textContent = ''; $('pvPw').value = '';
+    if (!box.hidden) setTimeout(() => { $('pvPw').focus(); box.scrollIntoView({ block: 'nearest' }); }, 50);
   };
+  function pvCheck(){
+    if ($('pvPw').value.trim() === '9900'){ pvMode = true; $('pvBox').hidden = true; showSkins(); toast('미리 보기: 잠긴 판과 효과를 눌러 보세요'); }
+    else { $('pvMsg').textContent = '비밀번호가 맞지 않아요'; $('pvPw').value = ''; $('pvPw').focus(); }
+  }
+  $('pvOk').onclick = pvCheck;
+  $('pvPw').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); pvCheck(); } });
   $('cbFx').addEventListener('change', e => store.set('semdle-fxOn', e.target.checked));
   $('cbSafe').addEventListener('change', e => { store.set('semdle-safe', e.target.checked); applySkin(store.get(skinKey('skin'), '')); });
 
@@ -1013,7 +1024,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
       const j = await api(Object.assign({ action: 'add' }, pending));
       pending = null; store.set('semdle-chal-pending', null);
       applyMe(j);
-      sm().textContent = j.me && j.me.rank ? `순위표에 저장됐어요. 이번 주 ${j.me.weekRank}등 · 전체 ${j.me.rank}등` : '순위표에 저장됐어요.';
+      sm().textContent = j.me && j.me.rank ? `순위표에 저장됐어요. 이번 주 ${j.me.weekRank}등 · 전체 ${j.me.rank}등` + (j.me.recentRank ? ` · 최근 5게임 ${j.me.recentRank}등` : '') : '순위표에 저장됐어요.';
       const g = $('statsGrid').querySelector('b'); if (g && isChal()) g.textContent = shownTotal();
     }catch(e){
       const m = String(e.message || '');
@@ -1024,19 +1035,28 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   let rankTab = 'week', lastBoard = null;
   function drawBoard(){
     const j = lastBoard; if (!j) return;
-    const wk = rankTab === 'week';
-    const list = (wk ? j.weekTop : j.top) || [];
+    const wk = rankTab === 'week', rc = rankTab === 'recent';
+    const list = (rc ? j.recentTop : wk ? j.weekTop : j.top) || [];
+    $('rankHead').innerHTML = rc ? '<tr><th>순위</th><th>닉네임</th><th>5게임 합계</th><th>게임</th></tr>' : '<tr><th>순위</th><th>닉네임</th><th>점수</th><th>맞힘</th><th>문제</th></tr>';
     const body = $('rankBody'); body.innerHTML = '';
     list.forEach(r => {
       const tr = document.createElement('tr'); if (r.name === me) tr.className = 'me';
-      [r.rank, r.name, r.total, r.wins, r.games].forEach((v, k) => { const td = document.createElement('td'); td.textContent = v; if (k === 2) td.className = 'pts'; tr.appendChild(td); });
+      (rc ? [r.rank, r.name, r.sum, `${r.n}/5`] : [r.rank, r.name, r.total, r.wins, r.games]).forEach((v, k) => { const td = document.createElement('td'); td.textContent = v; if (k === 2) td.className = 'pts'; tr.appendChild(td); });
       body.appendChild(tr);
     });
-    const cnt = wk ? j.weekPlayers : j.players;
-    $('rankMsg').textContent = (wk ? `${j.weekStart || '이번 주'} 월요일부터 · 참가자 ${cnt || 0}명 · 매주 월요일 0시에 새로 시작` : `처음부터 쌓인 점수 · 참가자 ${cnt || 0}명`) + (list.length ? '' : ' · 아직 기록이 없어요.');
-    const rk = j.me ? (wk ? j.me.weekRank : j.me.rank) : null, tot = j.me ? (wk ? j.me.weekTotal : j.me.total) : 0;
-    $('rankMe').textContent = rk && rk > 20 ? `내 순위: ${rk}등 (${tot}점)` : '';
-    $('tabWeek').classList.toggle('on', wk); $('tabAll').classList.toggle('on', !wk);
+    if (rc) $('rankMsg').textContent = (typeof j.recentPlayers === 'number' ? `각자 최근 5게임 점수 합계 · 최근 7일 안에 한 참가자 ${j.recentPlayers}명` : '순위표 업데이트가 필요해요. 선생님께 알려 주세요.') + (list.length ? '' : ' · 아직 기록이 없어요.');
+    else {
+      const cnt = wk ? j.weekPlayers : j.players;
+      $('rankMsg').textContent = (wk ? `${j.weekStart || '이번 주'} 월요일부터 · 참가자 ${cnt || 0}명 · 매주 월요일 0시에 새로 시작` : `처음부터 쌓인 점수 · 참가자 ${cnt || 0}명`) + (list.length ? '' : ' · 아직 기록이 없어요.');
+    }
+    if (rc){
+      const m = j.me;
+      $('rankMe').textContent = m && m.recentN ? `내 최근 5게임: ${m.recentLast5.map(v => (v > 0 ? '+' : '') + v).join(' · ')} = ${m.recentSum}점` + (m.recentRank && m.recentRank > 20 ? ` (${m.recentRank}등)` : '') : '';
+    } else {
+      const rk = j.me ? (wk ? j.me.weekRank : j.me.rank) : null, tot = j.me ? (wk ? j.me.weekTotal : j.me.total) : 0;
+      $('rankMe').textContent = rk && rk > 20 ? `내 순위: ${rk}등 (${tot}점)` : '';
+    }
+    $('tabWeek').classList.toggle('on', wk); $('tabAll').classList.toggle('on', rankTab === 'all'); $('tabRecent').classList.toggle('on', rc);
   }
   async function loadBoard(showUI){
     if (!SCRIPT_URL) return;
@@ -1087,6 +1107,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   $('rankRefresh').onclick = () => loadBoard(true);
   $('tabWeek').onclick = () => { rankTab = 'week'; drawBoard(); };
   $('tabAll').onclick = () => { rankTab = 'all'; drawBoard(); };
+  $('tabRecent').onclick = () => { rankTab = 'recent'; drawBoard(); };
 
   // ---------- 이벤트 ----------
   document.querySelectorAll('[data-len]').forEach(b => {
