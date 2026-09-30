@@ -6,7 +6,7 @@
 <title>우리 반 셈들</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Gaegu:wght@700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#F5F9FC; --grid:#DCE8F2; --ink:#1F2A44; --ink-soft:#5B6780;
@@ -261,6 +261,39 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .fx-100 i{display:block;width:150px;height:6px;border-radius:4px;background:#D6453D;margin-top:6px}
 .fx-100 i + i{width:130px}
 @keyframes hundin{0%{transform:translate(-50%,-50%) rotate(-10deg) scale(2.3);opacity:0}25%{transform:translate(-50%,-50%) rotate(-10deg) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-50%) rotate(-10deg) scale(1);opacity:0}}
+
+/* ── 판마다 달라지는 자판 (수학 주제) ── */
+.key{transition:transform .08s ease,box-shadow .15s ease;position:relative}
+.key:active{transform:translateY(2px)}
+/* 칠판 수업: 분필로 쓴 자판 */
+:root[data-skin="chalk"] .key{background:rgba(255,255,255,.05);border:2px dashed rgba(241,245,236,.55);border-radius:10px;color:#F6F8EF;font-family:"Gaegu",var(--b-font,"Jua"),sans-serif;font-size:1.6rem;text-shadow:0 0 1px #fff,0 0 3px rgba(255,255,255,.5)}
+:root[data-skin="chalk"] .key.wide{font-size:1.2rem}
+:root[data-skin="chalk"] .krow:nth-child(2) .key{color:#FFE27A;border-color:rgba(255,226,122,.6)}
+/* 좌표평면: 모눈이 비치는 네모 칸, 파란 펜 글씨 */
+:root[data-skin="graph"] .key{background-color:#fff;background-image:linear-gradient(#DCE6F0 1px,transparent 1px),linear-gradient(90deg,#DCE6F0 1px,transparent 1px);background-size:8px 8px;border:2px solid #1F2A44;border-radius:0;color:#1D4ED8;box-shadow:3px 3px 0 #1F2A44}
+:root[data-skin="graph"] .key:active{box-shadow:1px 1px 0 #1F2A44;transform:translate(2px,2px)}
+/* 주판: 나무 주판알 */
+:root[data-skin="abacus"] .key{background:radial-gradient(ellipse at 40% 30%,#E7A07A,#B5522E 55%,#7A3218);border:0;border-radius:50% / 42%;color:#FFF3E3;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:inset 0 -4px 6px rgba(0,0,0,.3),0 3px 0 #5A2410}
+:root[data-skin="abacus"] .krow{background:linear-gradient(transparent 45%,#8A5A2B 45%,#8A5A2B 55%,transparent 55%);border-radius:4px}
+:root[data-skin="abacus"] .key.wide{border-radius:14px;background:linear-gradient(#C9975E,#8A5A2B);box-shadow:0 3px 0 #5A3A18}
+/* 도형 나라: 키마다 다른 도형 */
+:root[data-skin="geometry"] .key{border:0;color:#2A2144;background:#E6E0FB}
+:root[data-skin="geometry"] .krow .key:nth-child(4n+1){border-radius:50%;background:#FFD6C7}
+:root[data-skin="geometry"] .krow .key:nth-child(4n+2){border-radius:4px;background:#D6F0E3}
+:root[data-skin="geometry"] .krow .key:nth-child(4n+3){clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);border-radius:0;background:#D8E6FF}
+:root[data-skin="geometry"] .krow .key:nth-child(4n+4){border-radius:18px 4px;background:#FFF0B8}
+:root[data-skin="geometry"] .key.wide{border-radius:999px!important;clip-path:none!important;background:#C9BEF2!important}
+/* 원주율의 밤: 빛나는 전자계산기 자판 */
+:root[data-skin="pi"] .key{background:#0E1633;border:1.5px solid #3B82F6;border-radius:8px;color:#7FD8FF;font-family:"Orbitron","Jua",sans-serif;font-size:1.2rem;text-shadow:0 0 6px #38BDF8,0 0 12px rgba(56,189,248,.6);box-shadow:0 0 8px rgba(59,130,246,.45),inset 0 0 10px rgba(59,130,246,.2)}
+:root[data-skin="pi"] .key.wide{font-family:"Jua",sans-serif;font-size:1rem}
+:root[data-skin="pi"] .krow:nth-child(2) .key{color:#F0ABFC;border-color:#C026D3;text-shadow:0 0 6px #E879F9;box-shadow:0 0 8px rgba(192,38,211,.45),inset 0 0 10px rgba(192,38,211,.2)}
+/* 황금비: 금박 자판 + 광택 */
+:root[data-skin="gold"] .key{overflow:hidden}
+:root[data-skin="gold"] .key::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,240,190,.45) 50%,transparent 65%);background-size:250% 100%;animation:goldSweep 4s ease-in-out infinite}
+/* 힌트 색은 어느 판에서도 또렷하게 */
+:root[data-skin] .key.green{background:var(--green)!important;color:#fff!important;text-shadow:none!important;border-color:transparent!important}
+:root[data-skin] .key.amber{background:var(--amber)!important;color:#fff!important;text-shadow:none!important;border-color:transparent!important}
+:root[data-skin] .key.gray{background:var(--key-off)!important;color:var(--key-off-ink)!important;text-shadow:none!important}
 </style>
 </head>
 <body>
