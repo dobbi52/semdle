@@ -294,6 +294,13 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 :root[data-skin] .key.green{background:var(--green)!important;color:#fff!important;text-shadow:none!important;border-color:transparent!important}
 :root[data-skin] .key.amber{background:var(--amber)!important;color:#fff!important;text-shadow:none!important;border-color:transparent!important}
 :root[data-skin] .key.gray{background:var(--key-off)!important;color:var(--key-off-ink)!important;text-shadow:none!important}
+/* ── 생각 오락실 통합 계정 ── */
+#hubLogin[hidden],#oldLogin[hidden]{display:none!important}
+#hubLogin:not([hidden])+#oldLogin{margin-top:12px;padding-top:6px;border-top:1px dashed var(--tile-line)}
+#hubLogin .note b{color:var(--green)}
+.hubnag{display:block;width:100%;margin:0 0 6px;border:2px solid var(--green);border-radius:10px;background:transparent;color:var(--ink);font-family:inherit;font-size:.85rem;line-height:1.45;padding:7px 10px;text-align:left;cursor:pointer}
+.hubnag b{color:var(--green)}
+.hubnag[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -325,6 +332,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
     <span><button class="pill" id="nickBtn">닉네임 쓰기</button> 누적 <b id="chalTotal">0</b>점</span>
     <button class="pill main" id="rankBtn">순위</button>
   </div>
+  <button class="hubnag" id="hubNag" type="button" hidden><b>생각 오락실 통합 계정으로 바꿔 주세요!</b> 예전 셈들 로그인은 10월 31일까지예요. 지금 닉네임과 비밀번호로 가입하면 점수가 이어져요.</button>
   <p class="crowd" id="crowd" hidden></p>
   <p class="subtitle" id="subtitle"></p>
 
@@ -398,15 +406,22 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 
 <div class="modal-bg" id="nickModal">
   <div class="modal" role="dialog" aria-labelledby="nickTitle">
-    <h2 id="nickTitle">닉네임으로 들어가기</h2>
-    <p class="note">처음이면 새로 만들어지고, 전에 쓴 닉네임이면 점수가 이어져요. 진짜 이름 대신 닉네임을 써 주세요.</p>
+    <h2 id="nickTitle">챌린지 들어가기</h2>
+    <div id="hubLogin" hidden>
+      <div class="actions"><button id="bHub" type="button">생각 오락실 계정으로 로그인</button></div>
+      <p class="note">계정 하나로 꼬들·셈들·가락 꼬들·퀸즈를 모두 해요. <b>예전 셈들 닉네임과 비밀번호 그대로</b> 가입하면 점수가 이어져요.</p>
+    </div>
+    <div id="oldLogin">
+    <p class="note" id="oldNote">처음이면 새로 만들어지고, 전에 쓴 닉네임이면 점수가 이어져요. 진짜 이름 대신 닉네임을 써 주세요.</p>
     <label for="nickInput">닉네임 (한글·영어·숫자 2~10자)</label>
     <input type="text" id="nickInput" maxlength="10" autocomplete="off" autocapitalize="off" spellcheck="false">
     <label for="pinInput">비밀번호 (숫자 4자리)</label>
     <input type="password" id="pinInput" inputmode="numeric" maxlength="4" autocomplete="off">
     <p class="note">다른 기기에서도 같은 닉네임과 비밀번호를 쓰면 이어서 할 수 있어요. 비밀번호를 잊으면 찾을 수 없으니 꼭 기억해 두세요.</p>
     <p class="note" id="nickMsg" style="color:#C0503A;min-height:1.4em"></p>
-    <div class="actions"><button class="alt" id="nickCancel">연습으로 돌아가기</button><button id="nickOk">들어가기</button></div>
+    <div class="actions"><button id="nickOk">들어가기</button></div>
+    </div>
+    <div class="actions" style="margin-top:8px"><button class="alt" id="nickCancel">연습으로 돌아가기</button></div>
   </div>
 </div>
 
@@ -432,6 +447,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   </div>
 </div>
 
+<script src="https://dobbi52.github.io/games/arcade-auth.js?v=1"></script>
 <script>
 /* ▼ 선생님: 셈들 챌린지용 구글 Apps Script 웹 앱 주소를 따옴표 안에 붙여 넣으세요 ▼ */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbmJrRARFIQdu7kaJKFZ4Fl6Yu-i3DUG9hrAn5NBCT4bvQwybhXQ/exec";
@@ -568,6 +584,11 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   const failOf = l => -10 * l;
   let LV = 1;
   let me = store.get('semdle-chal-name', ''), pin = store.get('semdle-chal-pin', '');
+  /* 생각 오락실 통합 계정: 로그인돼 있으면 그 닉네임으로 */
+  const AA = window.ArcadeAuth || null;
+  const OLD_CLOSED = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) >= '2026-11-01';   // 이날부터 예전 셈들 로그인 막음
+  let HUB = false;
+  { const a = AA && AA.get(); if (a){ me = a.nick; pin = a.pin; HUB = true; } else if (OLD_CLOSED){ me = ''; pin = ''; } }
   let serverTotal = null, serverWins = null, pending = store.get('semdle-chal-pending', null);
   const EMPTY = { total: 0, games: 0, wins: 0, streak: 0, best: 0 };
   const recKey = () => 'semdle-chal-rec:' + (me || '_') + (chalLen === 8 ? '' : ':' + chalLen);
@@ -599,6 +620,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     if (chal){
       $('countNo').textContent = '';
       $('nickBtn').textContent = me || '닉네임 쓰기';
+      $('hubNag').hidden = !(AA && !HUB && me);
       $('chalTotal').textContent = shownTotal();
       $('subtitle').textContent = over
         ? '문제 끝 · 입력을 누르면 다음 문제'
@@ -1093,7 +1115,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
     updateHeader();
     lastResult.msg += `<br>${nextRewardText()}`;
     if (SCRIPT_URL && me){
-      pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, delta, win: won ? 1 : 0, tries, lv: LV, len: chalLen, word: answer };
+      pending = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: me, pin, hub: HUB ? '1' : '', delta, win: won ? 1 : 0, tries, lv: LV, len: chalLen, word: answer };
       store.set('semdle-chal-pending', pending);
     }
     setTimeout(() => { openChalStats(true); sendPending(); }, 1200);
@@ -1116,7 +1138,9 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
 
   // ---------- 챌린지: 순위표 ----------
   async function api(params){
-    const r = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params).toString());
+    if (HUB && !('hub' in params) && params.name && params.name === me) params = Object.assign({ hub: '1' }, params);
+    /* POST로 보내서 비밀번호가 주소에 남지 않게 */
+    const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(params) });
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || 'error');
     return j;
@@ -1209,6 +1233,10 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   }
   function askNick(){
     if (!SCRIPT_URL){ toast('순위표가 연결되면 닉네임으로 들어올 수 있어요'); return; }
+    if (HUB && AA){ AA.open({}); return; }
+    $('hubLogin').hidden = !AA;
+    $('oldLogin').hidden = !!AA && OLD_CLOSED;
+    if (AA) $('oldNote').textContent = '예전에 셈들에서 만든 닉네임만 들어갈 수 있어요. 10월 31일까지만 쓸 수 있으니 위의 생각 오락실 계정으로 바꿔 주세요.';
     closeModals();
     $('nickInput').value = me; $('pinInput').value = ''; $('nickMsg').textContent = '';
     $('nickModal').classList.add('open');
@@ -1234,6 +1262,26 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzb0fd8J6LafGRkAyAbm
   $('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); doJoin(); } });
   $('nickInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); $('pinInput').focus(); } });
   $('nickBtn').onclick = askNick;
+  /* ── 생각 오락실 통합 계정 ── */
+  function openHub(){ if (AA) AA.open({ gameName: '셈들', color: '#2E9E6A', onPlay: () => {} }); }
+  function enterHub(a){
+    if (!a) return;
+    me = a.nick; pin = a.pin; HUB = true;
+    rec = Object.assign({}, EMPTY, store.get(recKey(), {}));
+    serverTotal = null; serverWins = null; serverPeak = null; lastBoard = null;
+    closeModals(); updateHeader();
+    toast(`${me}님, 어서 와요!`);
+    if (SCRIPT_URL) api({ action: 'join', name: me, pin, len: chalLen }).then(j => { lastBoard = j; applyMe(j); if (pending) sendPending(); }).catch(e => toast(e.message || '연결하지 못했어요', 2600));
+  }
+  if (AA){
+    $('bHub').onclick = openHub;
+    $('hubNag').onclick = openHub;
+    AA.onChange(a => {
+      if (a && (!HUB || a.nick !== me)) enterHub(a);
+      else if (!a && HUB){ HUB = false; me = ''; pin = ''; serverTotal = null; serverWins = null; serverPeak = null; lastBoard = null; rec = Object.assign({}, EMPTY, store.get(recKey(), {})); updateHeader(); if (isChal()) askNick(); }
+    });
+    if (HUB) AA.refresh();
+  }
   $('rankBtn').onclick = showRank;
   $('rankRefresh').onclick = () => loadBoard(true);
   $('tabWeek').onclick = () => { rankTab = 'week'; drawBoard(); };
